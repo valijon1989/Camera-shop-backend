@@ -1,0 +1,144 @@
+<%- include('includes/header') %>
+
+<style>
+  @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap");
+
+  body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #0d0f14, #1a1c25, #0c0f12);
+    font-family: "Montserrat", Arial, sans-serif;
+    color: #fff;
+  }
+
+  .card {
+    width: 420px;
+    padding: 40px;
+    background: rgba(15, 17, 22, 0.9);
+    border-radius: 20px;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.6),
+      inset 0 0 20px rgba(255, 70, 50, 0.15);
+    text-align: center;
+    backdrop-filter: blur(10px);
+  }
+
+  h1 {
+    margin: 0 0 6px 0;
+    font-size: 26px;
+    letter-spacing: 2px;
+    color: #e6e6e6;
+    font-weight: 600;
+  }
+
+  .sub {
+    color: #909090;
+    margin-bottom: 26px;
+    letter-spacing: 1px;
+  }
+
+  .input-group {
+    text-align: left;
+    margin-bottom: 16px;
+  }
+
+  .input-group label {
+    display: block;
+    font-size: 13px;
+    color: #b3b3b3;
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+  }
+
+  .input-group input {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+    color: #fff;
+    outline: none;
+    transition: border 0.2s, box-shadow 0.2s;
+  }
+
+  .input-group input:focus {
+    border: 1px solid rgba(255, 125, 90, 0.5);
+    box-shadow: 0 0 0 3px rgba(255, 125, 90, 0.2);
+  }
+
+  .btn {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #ff4d4d, #ff7a3d);
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 14px;
+    font-weight: bold;
+    transition: 0.25s;
+  }
+
+  .btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(255, 100, 80, 0.35);
+  }
+
+  .link-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #a5a5a5;
+    margin-top: 18px;
+  }
+
+  .link-row a {
+    color: #3bc6ff;
+  }
+</style>
+
+<body>
+  <form class="card login-container" action="/admin/login" method="POST">
+    <h1>Welcome Back</h1>
+    <div class="sub">Camera Shop Admin Login</div>
+    <% if (typeof message !== "undefined" && message) { %>
+      <div style="margin-bottom:12px;padding:10px;border-radius:10px;background:rgba(255,77,77,0.12);color:#ffb8b8;font-size:13px;">
+        <%= message %>
+      </div>
+    <% } %>
+
+    <div class="input-group">
+      <label>Admin *</label>
+      <input
+        type="text"
+        name="memberNick"
+        class="member-nick"
+        placeholder="Admin username"
+        required
+      />
+    </div>
+    <div class="input-group">
+      <label>Password *</label>
+      <input
+        type="password"
+        name="memberPassword"
+        class="member-password"
+        placeholder="Password"
+        required
+      />
+    </div>
+
+    <button class="btn login-btn" name="login" type="submit">Login</button>
+
+    <div class="link-row">
+      <span>New here? <a href="/admin/signup">Signup</a></span>
+      <a href="/admin">Home</a>
+    </div>
+  </form>
+</body>
+
+<%- include('includes/footer') %>

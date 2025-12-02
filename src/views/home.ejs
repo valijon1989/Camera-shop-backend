@@ -1,0 +1,348 @@
+<%- include('includes/header') %>
+
+<style>
+  @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap");
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at 20% 20%, rgba(255, 85, 51, 0.08), transparent 25%),
+      radial-gradient(circle at 80% 0%, rgba(59, 198, 255, 0.07), transparent 25%),
+      #0a0c14;
+    font-family: "Montserrat", Arial, sans-serif;
+    color: #f5f5f5;
+    padding: 22px 16px 32px;
+  }
+
+  .top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 12px;
+  }
+
+  .logo {
+    font-weight: 800;
+    letter-spacing: 1px;
+    font-size: 18px;
+    color: #ff7a3d;
+  }
+
+  .actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    transition: 0.2s;
+    color: #0a0c14;
+  }
+
+  .btn.primary {
+    background: linear-gradient(135deg, #ff5533, #ff8b3d);
+    color: #fff;
+  }
+
+  .btn.secondary {
+    background: linear-gradient(135deg, #1f8fff, #3bc6ff);
+    color: #fff;
+  }
+
+  .btn.ghost {
+    background: rgba(255, 255, 255, 0.08);
+    color: #f5f5f5;
+  }
+
+  .btn:hover {
+    transform: translateY(-2px);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+  }
+
+  .card {
+    background: #10131c;
+    border: 1px solid #1e2330;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35);
+  }
+
+  .metric-title {
+    font-size: 13px;
+    color: #a7adb8;
+    margin-bottom: 6px;
+  }
+
+  .metric-value {
+    font-size: 26px;
+    font-weight: 800;
+    color: #fff;
+  }
+
+  .metric-sub {
+    font-size: 12px;
+    color: #8991a3;
+    margin-top: 6px;
+  }
+
+  .section-title {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin: 0 0 10px 0;
+    color: #e6e6e6;
+  }
+
+  .recent-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+  }
+
+  .recent-item {
+    background: #0f121a;
+    border: 1px solid #1c2230;
+    border-radius: 12px;
+    padding: 12px;
+  }
+
+  .recent-top {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .thumb {
+    width: 64px;
+    height: 64px;
+    border-radius: 10px;
+    object-fit: cover;
+    background: #0a0c14;
+    border: 1px solid #1e2330;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 11px;
+    letter-spacing: 0.3px;
+    margin-top: 4px;
+  }
+
+  .badge.new {
+    background: rgba(255, 85, 51, 0.15);
+    color: #ff8b6b;
+  }
+  .badge.used {
+    background: rgba(59, 198, 255, 0.15);
+    color: #7ad4ff;
+  }
+  .badge.sold {
+    background: rgba(255, 215, 0, 0.15);
+    color: #ffd700;
+  }
+
+  .nav {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .nav a {
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #f5f5f5;
+    text-decoration: none;
+    font-size: 13px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .nav a:hover {
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  .empty {
+    color: #9aa2b3;
+    font-size: 13px;
+  }
+</style>
+
+<body>
+  <% const safe = (img, fallback) => {
+    if (!img) return fallback;
+    if (typeof img === 'string' && (img.startsWith('data:') || img.startsWith('http') || img.startsWith('/'))) return img;
+    return '/' + img;
+  } %>
+  <div class="top-bar">
+    <div class="logo">Camera Admin</div>
+    <div class="actions" style="align-items:center;">
+      <div style="display:flex;align-items:center;gap:8px;margin-right:6px;">
+        <img
+          src="<%= safe(member?.memberImage, '/uploads/placeholder-product.jpg') %>"
+          onerror="this.src='/uploads/placeholder-product.jpg'"
+          style="width:42px;height:42px;border-radius:50%;object-fit:cover;border:1px solid #1e2330;background:#0f121a;"
+          alt="Admin avatar"
+        />
+        <div style="color:#dce1eb;font-size:13px;line-height:1.2;">
+          <div style="font-weight:700;"><%= member?.memberNick || 'Admin' %></div>
+          <div style="color:#9aa2b3;"><%= member?.memberType || 'ADMIN' %></div>
+        </div>
+      </div>
+      <button class="btn ghost" onclick="location.href='/admin/products'">Katalog</button>
+      <button class="btn secondary" onclick="location.href='/admin/products#new'">
+        Yangi kamera qo'shish
+      </button>
+      <button class="btn ghost" onclick="location.href='/admin/logout'">Chiqish</button>
+    </div>
+  </div>
+
+  <div class="nav" style="margin-bottom: 14px;">
+    <a href="/admin">Dashboard</a>
+    <a href="/admin/products">Cameras</a>
+    <a href="/admin/user/all">Users</a>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="metric-title">Total cameras</div>
+      <div class="metric-value"><%= metrics?.totalCameras || 0 %></div>
+      <div class="metric-sub">New: <%= metrics?.newCameras || 0 %> | Used: <%= metrics?.usedCameras || 0 %> | Sold: <%= metrics?.soldOutCameras || 0 %></div>
+    </div>
+    <div class="card">
+      <div class="metric-title">Users</div>
+      <div class="metric-value"><%= metrics?.totalUsers || 0 %></div>
+      <div class="metric-sub">Agents: <%= metrics?.totalAgents || 0 %> | Blocked: <%= metrics?.blockedMembers || 0 %></div>
+    </div>
+    <div class="card">
+      <div class="metric-title">Current Admin</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:4px;">
+        <img
+          class="thumb"
+          style="width:54px;height:54px;border-radius:12px;border:1px solid #1e2330;object-fit:cover;"
+          src="<%= safe(member?.memberImage, '/uploads/placeholder-product.jpg') %>"
+          onerror="this.src='/uploads/placeholder-product.jpg'"
+        />
+        <div>
+          <div class="metric-value" style="font-size:18px;"><%= member?.memberNick || 'Admin' %></div>
+          <div class="metric-sub">Role: <%= member?.memberType || 'ADMIN' %></div>
+          <div class="metric-sub">Phone: <%= member?.memberPhone || '-' %></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <% const note = (typeof locals !== "undefined" && typeof locals.message !== "undefined") ? locals.message : null; %>
+  <% if (note) { %>
+  <div class="card" style="margin-top:16px;border-color:#1f8fff;">
+    <div class="section-title">Notification</div>
+    <div style="color:#9aa2b3;"><%= note %></div>
+  </div>
+  <% } %>
+
+  <div class="card" style="margin-top:16px;">
+    <div class="section-title">Profile</div>
+    <form action="/admin/profile" method="POST" enctype="multipart/form-data" class="grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;">
+      <div>
+        <label class="metric-title" style="display:block;margin-bottom:6px;">Avatar</label>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <img
+            class="thumb"
+            style="width:72px;height:72px;border-radius:14px;border:1px solid #1e2330;object-fit:cover;"
+            src="<%= safe(member?.memberImage, '/uploads/placeholder-product.jpg') %>"
+            onerror="this.src='/uploads/placeholder-product.jpg'"
+          />
+          <input type="file" name="memberImage" accept="image/*" style="color:#9aa2b3;"/>
+        </div>
+      </div>
+      <div>
+        <label class="metric-title" style="display:block;margin-bottom:6px;">Nickname</label>
+        <input
+          type="text"
+          name="memberNick"
+          value="<%= member?.memberNick || '' %>"
+          class="btn ghost"
+          style="width:100%;text-align:left;background:#0f121a;border:1px solid #1e2330;color:#f5f5f5;"
+        />
+      </div>
+      <div>
+        <label class="metric-title" style="display:block;margin-bottom:6px;">Phone</label>
+        <input
+          type="text"
+          name="memberPhone"
+          value="<%= member?.memberPhone || '' %>"
+          class="btn ghost"
+          style="width:100%;text-align:left;background:#0f121a;border:1px solid #1e2330;color:#f5f5f5;"
+        />
+      </div>
+      <div>
+        <label class="metric-title" style="display:block;margin-bottom:6px;">Address</label>
+        <input
+          type="text"
+          name="memberAddress"
+          value="<%= member?.memberAddress || '' %>"
+          class="btn ghost"
+          style="width:100%;text-align:left;background:#0f121a;border:1px solid #1e2330;color:#f5f5f5;"
+        />
+      </div>
+      <div style="grid-column:1/-1;">
+        <label class="metric-title" style="display:block;margin-bottom:6px;">About</label>
+        <textarea
+          name="memberDesc"
+          rows="3"
+          style="width:100%;padding:12px;border-radius:12px;background:#0f121a;border:1px solid #1e2330;color:#f5f5f5;"
+        ><%= member?.memberDesc || '' %></textarea>
+      </div>
+      <div style="grid-column:1/-1;text-align:right;">
+        <button class="btn primary" type="submit">Save changes</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <div class="section-title">Recently added cameras</div>
+    <% if (recentCameras && recentCameras.length) { %>
+    <div class="recent-list">
+      <% recentCameras.forEach(function(cam){ %>
+      <div class="recent-item">
+        <div class="recent-top">
+          <img
+            class="thumb"
+            src="<%= safe(cam.images && cam.images[0], '/img/default.jpeg') %>"
+            alt="<%= cam.cameraModel %>"
+          />
+          <div>
+            <div style="font-weight:700;"><%= cam.cameraModel %></div>
+            <div style="color:#9aa2b3;font-size:12px;"><%= cam.brand %> • $<%= cam.price || '-' %></div>
+            <% if (cam.productStatus === 'SOLD_OUT') { %>
+            <span class="badge sold">Sotilgan</span>
+            <% } else if (cam.productStatus === 'USED' || cam.productStatus === 'PROCESS') { %>
+            <span class="badge used">Ishlatilgan</span>
+            <% } else { %>
+            <span class="badge new">Yangi</span>
+            <% } %>
+          </div>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+    <% } else { %>
+    <div class="empty">Hozircha kamera yo'q. Yangi kamera qo'shing.</div>
+    <% } %>
+  </div>
+</body>
+
+<%- include('includes/footer') %>

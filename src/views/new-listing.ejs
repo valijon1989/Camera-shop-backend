@@ -1,0 +1,205 @@
+<%- include('includes/header') %>
+
+<style>
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #0d0f14;
+    color: #f5f5f5;
+  }
+
+  .nav {
+    display: flex;
+    gap: 16px;
+    padding: 18px 22px;
+    background: #111722;
+    align-items: center;
+  }
+
+  .nav a {
+    color: #cfd6e4;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .nav a.active {
+    color: #4fc3f7;
+  }
+
+  .wrap {
+    max-width: 760px;
+    margin: 24px auto 60px;
+    padding: 24px;
+    background: #121824;
+    border-radius: 14px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+  }
+
+  h2 {
+    margin-top: 0;
+    letter-spacing: 0.5px;
+  }
+
+  label {
+    display: block;
+    margin: 12px 0 6px;
+    color: #cfd6e4;
+    font-size: 14px;
+  }
+
+  input,
+  select,
+  textarea {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #2a3242;
+    background: #0f141f;
+    color: #e5e9f0;
+    font-size: 14px;
+    box-sizing: border-box;
+  }
+
+  textarea {
+    min-height: 100px;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+  }
+
+  button {
+    margin-top: 18px;
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #1f8fff, #3bc6ff);
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 10px 25px rgba(59, 198, 255, 0.25);
+  }
+
+  .hint {
+    color: #9aa3b5;
+    font-size: 12px;
+    margin-top: 4px;
+  }
+</style>
+
+<body>
+  <div class="nav">
+    <a href="/" >Home</a>
+    <a href="/product/all">Product</a>
+    <a href="/order/all">Order</a>
+    <a href="/member/detail">My Page</a>
+    <a href="/help">Help</a>
+    <a href="/agent/new-listing" class="active">New Listing</a>
+  </div>
+
+  <div class="wrap">
+    <h2>Agent: New Camera / Gear Listing</h2>
+    <p class="hint">
+      Agentlar kamera, linza yoki aksessuar e'lonlarini shu yerda kiritishi mumkin.
+      Rasm URL'larini vergul bilan ajratib yozing.
+    </p>
+    <form id="listing-form">
+      <div class="row">
+        <div>
+          <label>Title</label>
+          <input name="title" placeholder="Sony A7 IV kit" required />
+        </div>
+        <div>
+          <label>Brand</label>
+          <input name="brand" placeholder="Sony" required />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Model</label>
+          <input name="model" placeholder="A7 IV" required />
+        </div>
+        <div>
+          <label>Category</label>
+          <select name="category" required>
+            <option value="CAMERA">Camera</option>
+            <option value="LENS">Lens</option>
+            <option value="ACCESSORY">Accessory</option>
+            <option value="DRONE">Drone</option>
+            <option value="OTHER">Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Condition</label>
+          <select name="condition" required>
+            <option value="NEW">New</option>
+            <option value="USED">Used</option>
+          </select>
+        </div>
+        <div>
+          <label>Price</label>
+          <input type="number" name="price" placeholder="2498" required />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Currency</label>
+          <input name="currency" value="USD" />
+        </div>
+        <div>
+          <label>Location</label>
+          <input name="location" placeholder="Cheonan, Korea" required />
+        </div>
+      </div>
+
+      <label>Image URLs (comma separated)</label>
+      <input
+        name="images"
+        placeholder="uploads/sony-a7-iv-1.jpg, uploads/sony-a7-iv-2.jpg"
+      />
+      <div class="hint">Agar yuklagan rasmlaringiz /uploads ostida bo‘lsa, shuni yozing.</div>
+
+      <label>Description</label>
+      <textarea name="description" placeholder="Full-frame hybrid, 4K60, AI AF..."></textarea>
+
+      <button type="submit">Publish Listing</button>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById("listing-form");
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(form).entries());
+      if (data.images) {
+        data.images = data.images
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
+      }
+      try {
+        const res = await fetch("/listing/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+        if (!res.ok) throw new Error("Failed to publish");
+        alert("Listing published!");
+        form.reset();
+      } catch (err) {
+        console.error(err);
+        alert("Failed to publish listing");
+      }
+    });
+  </script>
+</body>
+
+<%- include('includes/footer') %>

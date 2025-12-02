@@ -1,0 +1,278 @@
+<%- include('includes/header') %>
+
+<style>
+  @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap");
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0d0f14, #1a1c25, #0c0f12);
+    font-family: "Montserrat", Arial, sans-serif;
+    color: #fff;
+    padding: 24px 16px 32px;
+  }
+
+  .nav-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .nav-links a {
+    padding: 10px 14px;
+    border-radius: 12px;
+    color: #e6e6e6;
+    text-decoration: none;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: 0.2s;
+  }
+
+  .nav-links a:hover {
+    background: rgba(59, 198, 255, 0.08);
+    border-color: rgba(59, 198, 255, 0.4);
+  }
+
+  .page-title {
+    font-size: 22px;
+    color: #e6e6e6;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+
+  .card {
+    width: 100%;
+    background: rgba(15, 17, 22, 0.9);
+    border-radius: 18px;
+    padding: 24px 24px 26px;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.6),
+      inset 0 0 20px rgba(255, 70, 50, 0.15);
+    backdrop-filter: blur(10px);
+  }
+
+  .section-title {
+    font-size: 16px;
+    letter-spacing: 1px;
+    color: #cfd3da;
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #e6e6e6;
+    font-size: 13px;
+  }
+
+  thead tr {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  thead th {
+    padding: 12px 10px;
+    font-weight: 700;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    letter-spacing: 0.3px;
+  }
+
+  tbody tr {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  tbody td {
+    padding: 10px 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  }
+
+  tbody tr:hover {
+    background: rgba(59, 198, 255, 0.05);
+  }
+
+  select.member-status {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 8px 10px;
+    outline: none;
+  }
+
+  .message-card {
+    text-align: center;
+    font-size: 20px;
+    color: #e6e6e6;
+    padding: 40px 0;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    letter-spacing: 0.3px;
+  }
+  .status-active {
+    background: rgba(59, 198, 255, 0.15);
+    color: #8bd8ff;
+  }
+  .status-block {
+    background: rgba(255, 180, 70, 0.18);
+    color: #ffd48a;
+  }
+  .status-delete {
+    background: rgba(255, 85, 51, 0.18);
+    color: #ffb3a1;
+  }
+
+  .profile-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: #0d0f14;
+  }
+
+  .action-btn {
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-weight: 700;
+    color: #fff;
+    transition: 0.2s;
+    letter-spacing: 0.2px;
+  }
+  .action-btn.block {
+    background: linear-gradient(135deg, #f0ad4e, #f6c25c);
+  }
+  .action-btn.delete {
+    background: linear-gradient(135deg, #d9534f, #ff6b6b);
+  }
+  .action-btn:hover {
+    transform: translateY(-1px);
+  }
+</style>
+
+<body>
+  <% const safe = (img, fallback) => {
+    if (!img) return fallback;
+    if (typeof img === 'string' && (img.startsWith('data:') || img.startsWith('http') || img.startsWith('/'))) return img;
+    return '/' + img;
+  } %>
+  <% if(!member) { %>
+  <div class="nav-bar">
+    <div class="page-title">Users</div>
+    <div class="nav-links">
+      <a href="/admin/">Home</a>
+      <a href="/admin/signup">Signup</a>
+      <a href="/admin/login">Login</a>
+    </div>
+  </div>
+  <div class="card message-card">Please login first!</div>
+  <% } else { %>
+  <div class="nav-bar">
+    <div class="page-title">Users</div>
+    <div class="nav-links">
+      <a href="/admin/">Home</a>
+      <a href="/admin/product/all">Menu</a>
+      <a href="/admin/user/all">Users</a>
+      <a href="/admin/logout" onclick="return confirm('Do you really want to logout?')"
+        >Logout</a
+      >
+    </div>
+  </div>
+
+  <div class="card users-container">
+    <div class="section-title">All Users List</div>
+    <table class="table table-hover table-sm">
+      <thead>
+        <tr>
+          <th scope="col">No</th>
+          <th scope="col">User</th>
+          <th scope="col">Rol</th>
+          <th scope="col">Telefon</th>
+          <th scope="col">Sotgan</th>
+          <th scope="col">Sotib olgan</th>
+          <th scope="col">Like</th>
+          <th scope="col">Reyting</th>
+          <th scope="col">Status</th>
+          <th scope="col">Amal</th>
+        </tr>
+      </thead>
+      <!--  LOOP PRODUCTS: START  -->
+      <% users.map(function (value, index) { %>
+      <tbody>
+        <td><%= index + 1 %></td>
+        <td class="profile-cell">
+          <img
+            src="<%= safe(value.memberImage, '/uploads/placeholder-product.jpg') %>"
+            class="avatar"
+            onerror="this.src='/uploads/placeholder-product.jpg'"
+          />
+          <span><%= value.memberNick %></span>
+        </td>
+        <td><%= value.memberType %></td>
+        <td><%= value.memberPhone %></td>
+        <td><%= value.productsSold ?? 0 %></td>
+        <td><%= value.productsBought ?? 0 %></td>
+        <td><%= value.likesCount ?? 0 %></td>
+        <td><%= value.rating ?? 0 %></td>
+        <td style="width: 18%">
+          <div style="margin-bottom:6px;">
+            <% if (value.memberStatus === 'BLOCK') { %>
+            <span class="status-badge status-block">BLOCK</span>
+            <% } else if (value.memberStatus === 'DELETE') { %>
+            <span class="status-badge status-delete">DELETE</span>
+            <% } else { %>
+            <span class="status-badge status-active">ACTIVE</span>
+            <% } %>
+          </div>
+          <select class="spec-select member-status" id="<%= value._id %>">
+            <option value="ACTIVE" <%= value.memberStatus === "ACTIVE" ? 'selected' : '' %> >ACTIVE</option>
+            <option value="BLOCK"  <%= value.memberStatus === "BLOCK" ? 'selected' : '' %> >BLOCK</option>
+            <option value="DELETE" <%= value.memberStatus === "DELETE" ? 'selected' : '' %> >DELETE</option>
+          </select>
+        </td>
+        <td>
+          <button
+            class="action-btn block block-user"
+            data-id="<%= value._id %>"
+            style="margin-right:6px;"
+          >
+            Block
+          </button>
+          <button
+            class="action-btn delete delete-user"
+            data-id="<%= value._id %>"
+          >
+            Delete
+          </button>
+        </td>
+      </tbody>
+
+      <% }) %>
+
+      <!--  LOOP PRODUCTS: END  -->
+    </table>
+  </div>
+  <% } %>
+
+  <script type="text/javascript" src="/js/users.js"></script>
+</body>
+
+<%- include('includes/footer') %>

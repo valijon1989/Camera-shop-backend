@@ -1,0 +1,299 @@
+<%- include('includes/header') %>
+
+<style>
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: #0d0f14;
+    color: #f5f5f5;
+    font-family: Arial, sans-serif;
+    padding: 24px 16px 32px;
+  }
+
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    background: #121824;
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+  }
+
+  h2 {
+    margin-top: 0;
+    letter-spacing: 0.5px;
+  }
+
+  label {
+    display: block;
+    margin: 12px 0 6px;
+    color: #cfd6e4;
+    font-size: 14px;
+  }
+
+  input,
+  select,
+  textarea {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #2a3242;
+    background: #0f141f;
+    color: #e5e9f0;
+    font-size: 14px;
+    box-sizing: border-box;
+  }
+
+  textarea {
+    min-height: 100px;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+  }
+
+  button {
+    margin-top: 18px;
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #1f8fff, #3bc6ff);
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 10px 25px rgba(59, 198, 255, 0.25);
+  }
+
+  .hint {
+    color: #9aa3b5;
+    font-size: 12px;
+    margin-top: 4px;
+  }
+</style>
+
+<body>
+  <div class="wrap">
+    <h2>Add Product (Agent/Admin)</h2>
+    <p class="hint">
+      Camera/gear model, brand, category, price va tavsifni kiriting. Rasm URL’larini yuqoridagi "Upload images" bo‘limida kiriting.
+    </p>
+    <div id="message" style="margin: 8px 0; color: #9aa3b5;"></div>
+    <form id="product-form">
+      <div class="row">
+        <div>
+          <label>Camera Model (required)</label>
+          <input name="cameraModel" required placeholder="Sony A7 IV" />
+        </div>
+        <div>
+          <label>Brand (required)</label>
+          <input name="brand" required placeholder="Sony" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Category (required)</label>
+          <select name="category" required>
+            <option value="" disabled selected hidden>Select category</option>
+            <option value="MIRRORLESS">Mirrorless</option>
+            <option value="DSLR">DSLR</option>
+            <option value="CINEMA">Cinema</option>
+            <option value="LENS">Lens</option>
+            <option value="DRONE">Drone</option>
+            <option value="ACCESSORY">Accessory</option>
+          </select>
+        </div>
+        <div>
+          <label>Sensor Type</label>
+          <input name="sensorType" placeholder="Full-frame / APS-C" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Resolution (MP)</label>
+          <input type="number" step="0.1" name="resolutionMp" placeholder="50" />
+        </div>
+        <div>
+          <label>Mount Type</label>
+          <input name="mountType" placeholder="E-mount" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Price ($, required)</label>
+          <input
+            type="number"
+            name="price"
+            required
+            placeholder="1999"
+            inputmode="decimal"
+            value=""
+          />
+        </div>
+        <div>
+          <label>Condition (required)</label>
+          <select name="condition" required>
+            <option value="" disabled selected hidden>Select condition</option>
+            <option value="NEW">New</option>
+            <option value="USED">Used</option>
+          </select>
+        </div>
+      </div>
+
+      <label>Description (short spec)</label>
+      <textarea
+        name="description"
+        placeholder="Hybrid 4K60, AF, etc."
+      ></textarea>
+
+      <label>Upload images (jpg/jpeg/png/webp, max 5)</label>
+      <div id="image-fields"></div>
+      <button type="button" id="add-image-btn">+ Add image</button>
+      <div class="hint">
+        Har satrga bitta rasm URL yozing (uploads/... yoki https://...). Birinchi maydon to‘ldirilgach keyingisi chiqadi. Keraksizini “×” bilan o‘chira olasiz.
+      </div>
+
+      <label>Accessories (comma separated)</label>
+      <input name="accessories" placeholder="2x battery, camera bag" />
+
+      <button type="submit">Add</button>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById("product-form");
+    const messageBox = document.getElementById("message");
+    const imageFields = document.getElementById("image-fields");
+    const addImageBtn = document.getElementById("add-image-btn");
+
+    const MAX_IMAGES = 5;
+    const MIN_IMAGES = 1;
+
+    const makeInputRow = (placeholder = "") => {
+      const wrap = document.createElement("div");
+      wrap.style.display = "flex";
+      wrap.style.gap = "8px";
+      wrap.style.marginBottom = "8px";
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.placeholder = placeholder || "uploads/sony-a7-iv-1.jpg";
+      input.dataset.imageField = "true";
+      input.style.flex = "1";
+
+      const removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.textContent = "×";
+      removeBtn.style.width = "40px";
+      removeBtn.style.border = "1px solid #2a3242";
+      removeBtn.style.borderRadius = "8px";
+      removeBtn.style.background = "#1b2230";
+      removeBtn.style.color = "#e5e9f0";
+      removeBtn.addEventListener("click", () => {
+        wrap.remove();
+        ensureProgressive();
+      });
+
+      wrap.appendChild(input);
+      wrap.appendChild(removeBtn);
+      return wrap;
+    };
+
+    const ensureFields = () => {
+      if (imageFields.children.length === 0) {
+        imageFields.appendChild(makeInputRow());
+      }
+    };
+    // Clear default 0 on focus for price input so real value yozilganda yo'qoladi
+    const priceInput = form.querySelector("input[name='price']");
+    if (priceInput) {
+      priceInput.addEventListener("focus", () => {
+        if (priceInput.value === "0") priceInput.value = "";
+      });
+    }
+
+    const ensureProgressive = () => {
+      const inputs = Array.from(
+        imageFields.querySelectorAll("input[data-image-field]")
+      );
+      const filled = inputs.filter((i) => i.value.trim()).length;
+      if (
+        filled > 0 &&
+        inputs.length < Math.min(MAX_IMAGES, filled + 1)
+      ) {
+        imageFields.appendChild(makeInputRow("uploads/your-image.jpg"));
+      }
+    };
+
+    addImageBtn.addEventListener("click", () => {
+      if (imageFields.children.length >= MAX_IMAGES) {
+        alert("Eng ko‘pi bilan 5 ta rasm URL kiritish mumkin.");
+        return;
+      }
+      imageFields.appendChild(makeInputRow("uploads/your-image.jpg"));
+    });
+
+    ensureFields();
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(form).entries());
+      const showMsg = (text, color = "#9aa3b5") => {
+        messageBox.textContent = text;
+        messageBox.style.color = color;
+      };
+      const imageInputs = Array.from(
+        imageFields.querySelectorAll("input[data-image-field]")
+      );
+      data.images = imageInputs.map((i) => i.value.trim()).filter(Boolean);
+      ensureProgressive();
+      if (data.images.length < MIN_IMAGES || data.images.length > MAX_IMAGES) {
+        alert("Rasm URL’lari soni 1–5 oralig‘ida bo‘lishi kerak.");
+        return;
+      }
+      const invalidExt = data.images.find(
+        (url) => !url.toLowerCase().match(/\.(jpg|jpeg|png|webp)$/)
+      );
+      if (invalidExt) {
+        alert("Faqat jpg/jpeg/png/webp rasmlariga ruxsat beriladi.");
+        return;
+      }
+      data.stock = Number(data.stock || 1);
+      if (data.condition) data.condition = data.condition.toUpperCase();
+      if (data.category) data.category = data.category.toUpperCase();
+      if (data.price === "0") data.price = "";
+      if (data.accessories) {
+        data.accessories = data.accessories
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
+      }
+      try {
+        showMsg("Yuborilmoqda...", "#9aa3b5");
+        const res = await fetch("/products", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+        if (!res.ok) {
+          const errText = await res.text().catch(() => "");
+          throw new Error(errText || "Failed");
+        }
+        showMsg("Product created. Yo'naltirilmoqda...", "#3bc6ff");
+        setTimeout(() => {
+          window.location.href =
+            "/cameras?order=createdAt&page=1&limit=8";
+        }, 700);
+      } catch (err) {
+        console.error(err);
+        showMsg("Xatolik: mahsulot yaratilishi bajarilmadi.", "#ff6b6b");
+      }
+    });
+  </script>
+</body>
+
+<%- include('includes/footer') %>
