@@ -1,4 +1,6 @@
-import { Router } from "express";
+//@ts-ignore
+import { Router, Request, Response } from "express";
+//@ts-ignore
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import Member from "../schema/Member.model";
@@ -6,7 +8,7 @@ import { MemberStatus, MemberType } from "../libs/enums/member.enum";
 
 const router = Router();
 
-router.post("/signup", async (req, res): Promise<void> => {
+router.post("/signup", async (req: Request, res: Response): Promise<void> => {
   try {
     console.log("API signup body:", req.body);
     const { memberNick, memberPassword, memberPhone, email } = req.body;
@@ -77,7 +79,7 @@ router.post("/signup", async (req, res): Promise<void> => {
   }
 });
 
-router.post("/login", async (req, res): Promise<void> => {
+router.post("/login", async (req: Request, res: Response): Promise<void> => {
   try {
     const { memberNick, memberPassword } = req.body;
 

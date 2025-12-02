@@ -1,3 +1,4 @@
+//@ts-ignore
 import { Router, Request, Response } from "express";
 import HelpRequestModel from "../schema/HelpRequest.model";
 
