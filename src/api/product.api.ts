@@ -1,10 +1,11 @@
-import { RequestHandler, Router } from "express";
+//@ts-ignore
+import { Request, RequestHandler, Router } from "express";
 import { isValidObjectId } from "mongoose";
 import Product from "../schema/Product.model";
 
 const router = Router();
 
-const listProducts: RequestHandler = async (_req, res, next) => {
+const listProducts: RequestHandler = async (_req: Request, res, next): Promise<void> => {
   try {
     const products = await Product.find({});
     res.json(products);
@@ -13,7 +14,7 @@ const listProducts: RequestHandler = async (_req, res, next) => {
   }
 };
 
-const getProductById: RequestHandler = async (req, res, next) => {
+const getProductById: RequestHandler = async (req: Request, res, next): Promise<void> => {
   try {
     const id = req.params.id;
     // Prevent CastErrors (and nodemon restarts) when non-objectId paths like "categories" are requested
