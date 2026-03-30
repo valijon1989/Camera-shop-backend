@@ -10,7 +10,9 @@ import morgan from "morgan";
 import { MORGAN_FORMAT } from "./libs/config";
 import cookieParser from "cookie-parser";
 import helpRoutes from "./routes/helpRoutes";
-
+import apiRouter from "./api/api.router";
+import { Server as SocketIOServer } from "socket.io";
+import http from "http";
 import session from "express-session";
 import { T } from "./libs/types/common";
 
@@ -115,6 +117,7 @@ app.set("view engine", "ejs");
 /* 4-ROUTERS */
 app.use("/admin", routerAdmin);
 app.use("/api", router); // SPA/REST with /api prefix for frontend clients
+app.use("/api", apiRouter); // lightweight auth/products/users API endpoints
 app.use("/api/help", helpRoutes);
 // Simple root handler so redirects to "/" don't return 404
 app.get("/", (_req: express.Request, res: express.Response) => {
@@ -122,7 +125,30 @@ app.get("/", (_req: express.Request, res: express.Response) => {
 });
 app.use("/", router); // REST API / SPA
 
-export default app; // module.exports = app.js;
+
+const server = http.createServer(app);
+
+const io = new SocketIOServer(server, {
+  cors: {
+    origin: true,
+    credentials: true,
+  },
+});
+
+let summaryClient = 0;
+
+io.on("connection", (socket) => {
+  summaryClient++;
+  console.log(`Connection & total [${summaryClient}]`);
+
+  socket.on("disconnect", () => {
+    summaryClient--;
+    console.log(`Disconnection & total [${summaryClient}]`);
+  });
+});
+
+export { app, server };
+export default server; // module.exports = app.js;
 
 /*Burak backend ni ikki hil maqsadda ishlatamiz:
 1. app.use("/", router); => Burak SPA: ni userlar uchun xizmat qiladigan

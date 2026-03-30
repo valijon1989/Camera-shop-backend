@@ -5,7 +5,7 @@ import Product from "../schema/Product.model";
 
 const router = Router();
 
-const listProducts: RequestHandler = async (_req: Request, res, next): Promise<void> => {
+const listProducts: RequestHandler = async (_req: Request, res: any, next: any): Promise<void> => {
   try {
     const products = await Product.find({});
     res.json(products);
@@ -14,7 +14,7 @@ const listProducts: RequestHandler = async (_req: Request, res, next): Promise<v
   }
 };
 
-const getProductById: RequestHandler = async (req: Request, res, next): Promise<void> => {
+const getProductById: RequestHandler = async (req: Request, res: any, next: any): Promise<void> => {
   try {
     const id = req.params.id;
     // Prevent CastErrors (and nodemon restarts) when non-objectId paths like "categories" are requested

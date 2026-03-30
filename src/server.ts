@@ -2,12 +2,9 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 dotenv.config();
 import bcrypt from "bcryptjs";
-import express from "express";
-import path from "path";
 import MemberModel from "./schema/Member.model";
 import { MemberStatus, MemberType } from "./libs/enums/member.enum";
-import app from "./app";
-import apiRouter from "./api/api.router";
+import server from "./app";
 
 // Global guards: log unexpected errors so process doesn't silently exit/restart
 process.on("unhandledRejection", (reason) => {
@@ -23,11 +20,6 @@ console.log("ENV MONGO_CAMERA_SHOP_URL:", process.env.MONGO_CAMERA_SHOP_URL);
 console.log("ENV MONGO_URL:", process.env.MONGO_URL);
 console.log("ENV SESSION_SECRET:", process.env.SESSION_SECRET);
 console.log("ENV SECRET_TOKEN:", process.env.SECRET_TOKEN);
-
-// Serve static uploads for images
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
-
-app.use("/api", apiRouter);
 
 async function ensureDefaultAdmin() {
   const nick = "valijon";
@@ -85,7 +77,7 @@ async function start() {
 
   await ensureDefaultAdmin();
   const PORT = process.env.PORT ?? 9090;
-  app.listen(PORT, function () {
+  server.listen(PORT, function () {
     console.info(`The serveris running succesfully on port: ${PORT}`);
     console.info(`Admin project on http://localhost:${PORT}/admin \n`);
   });

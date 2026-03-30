@@ -5,6 +5,7 @@
   "main": "src/server.ts",
   "scripts": {
     "start": "NODE_OPTIONS=--max-http-header-size=65536 ts-node src/server.ts",
+    "dev": "NODE_OPTIONS=--max-http-header-size=65536 nodemon --exec ts-node src/server.ts",
     "build": "tsc",
     "start:dev": "NODE_OPTIONS=--max-http-header-size=65536 nodemon --exec ts-node src/server.ts",
     "train": "nodemon --exec ts-node src/train.ts",
@@ -30,6 +31,7 @@
     "mongoose": "^6.2.9",
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
+    "socket.io": "^4.8.3",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
@@ -42,6 +44,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/morgan": "^1.9.10",
     "@types/multer": "^2.0.0",
+    "@types/socket.io": "^3.0.2",
     "@types/uuid": "^10.0.0",
     "chalk": "^4.1.2",
     "nodemon": "^3.1.10",
