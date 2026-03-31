@@ -15,6 +15,7 @@ import { Server as SocketIOServer } from "socket.io";
 import http from "http";
 import session from "express-session";
 import { T } from "./libs/types/common";
+import { createSessionStore } from "./libs/session-store";
 
 /* 1- ENTRANCE */
 const app = express(); //expressni execution natijasida app maqsadli objectni olamiz
@@ -85,6 +86,11 @@ app.use((req, res, next) => {
 });
 
 /* 2-SESSIONS */
+const sessionMongoUri =
+  process.env.MONGO_CAMERA_SHOP_URL ||
+  process.env.MONGO_URL ||
+  "mongodb://127.0.0.1:27017/camera_shop";
+
 app.use(
   session({
     //session bu core functon/ session bosh boladi
@@ -92,7 +98,8 @@ app.use(
     cookie: {
       maxAge: 1000 * 60 * 60 * 6,
     },
-    // MemoryStore fallback: atlas sessiya storeni ulay olmasa ham ishlaydi
+    // Mongo store tayyor bo'lsa unga o'tadi, aks holda memory fallback bilan davom etadi
+    store: createSessionStore(sessionMongoUri),
     resave: false,
     saveUninitialized: false,
   })

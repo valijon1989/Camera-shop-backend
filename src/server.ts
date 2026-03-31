@@ -57,6 +57,7 @@ const localUrl = "mongodb://127.0.0.1:27017/camera_shop";
 
 async function start() {
   try {
+    mongoose.set("strictQuery", true);
     await mongoose.connect(atlasUrl || localUrl);
     console.log("Camera Shop DB Connected");
     try {
