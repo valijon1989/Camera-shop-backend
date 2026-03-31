@@ -1,10 +1,18 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { HydratedDocument, Schema, Types } from "mongoose";
 import { MemberStatus, MemberType } from "../libs/enums/member.enum";
+import { Member } from "../libs/types/member";
 // Schema first & code first
 //Schema first
 
+export interface MemberRecord extends Omit<Member, "_id"> {
+  _id: Types.ObjectId;
+  memberPassword: string;
+}
+
+export type MemberDocument = HydratedDocument<MemberRecord>;
+
 //Schema oraqali object yasaymiz
-const memberSchema = new Schema(
+const memberSchema = new Schema<MemberRecord>(
   {
     memberType: {
       type: String,
@@ -84,4 +92,6 @@ const memberSchema = new Schema(
 
 //va memberSchema validation objectidan
 // quyidagi member schema modelni hosil qilamiz:
-export default mongoose.model("User", memberSchema, "users");
+const MemberModel = mongoose.model<MemberRecord>("User", memberSchema, "users");
+
+export default MemberModel;

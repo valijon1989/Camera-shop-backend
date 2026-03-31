@@ -1,4 +1,4 @@
-import MemberModel from "../schema/Member.model";
+import MemberModel, { MemberDocument } from "../schema/Member.model";
 import {
   LoginInput,
   Member,
@@ -19,11 +19,38 @@ class MemberService {
   constructor() {
     this.memberModel = MemberModel;
   }
-  public async findExistingAdmin() {
-    return this.memberModel.findOne({
-      memberType: MemberType.ADMIN,
-      memberStatus: { $ne: MemberStatus.DELETE },
-    });
+
+  private sanitizeMember(member: Member): Member {
+    if (!member.memberPassword) return member;
+
+    return {
+      ...member,
+      memberPassword: "",
+    };
+  }
+
+  private isMemberDocument(
+    member: MemberDocument | Member
+  ): member is MemberDocument {
+    return "toObject" in member;
+  }
+
+  private toMember(member: MemberDocument | Member): Member {
+    const plainMember: Member = this.isMemberDocument(member)
+      ? member.toObject()
+      : { ...member };
+
+    return this.sanitizeMember(plainMember);
+  }
+
+  public async findExistingAdmin(): Promise<Member | null> {
+    return this.memberModel
+      .findOne({
+        memberType: MemberType.ADMIN,
+        memberStatus: { $ne: MemberStatus.DELETE },
+      })
+      .lean<Member>()
+      .exec();
   }
   /* SPA */
   public async getRestaurant(): Promise<Member> {
@@ -32,6 +59,7 @@ class MemberService {
       .findOne({
         memberType: MemberType.ADMIN,
       })
+      .lean<Member>()
       .exec();
     if (!result) throw new Errors(HttpCode.NOT_FOUND, Message.NO_DATA_FOUND);
 
@@ -40,11 +68,14 @@ class MemberService {
 
   public async signup(input: MemberInput): Promise<Member> {
     const salt = await bcrypt.genSalt();
-    input.memberPassword = await bcrypt.hash(input.memberPassword, salt);
+    const memberPassword = await bcrypt.hash(input.memberPassword, salt);
     try {
-      const result = await this.memberModel.create(input);
-      result.memberPassword = "";
-      return result.toJSON();
+      const result = await this.memberModel.create({
+        ...input,
+        memberPassword,
+      });
+
+      return this.toMember(result);
     } catch (err) {
       console.error("Error, model: signup", err);
       throw new Errors(HttpCode.BAD_REQUEST, Message.USED_NICK_PHONE);
@@ -79,14 +110,14 @@ class MemberService {
     if (!isMatch)
       throw new Errors(HttpCode.UNAUTHORIZED, Message.WRONG_PASSWORD);
 
-    return await this.memberModel.findById(member._id).lean().exec();
-    //lean() dokument type malumotni js objectga aylantirirb beradi
+    return this.toMember(member);
   }
 
   public async getMemberDetail(member: Member): Promise<Member> {
     const memberId = shapeIntroMongooseObjectId(member._id);
     const result = await this.memberModel
       .findOne({ _id: memberId, memberStatus: MemberStatus.ACTIVE })
+      .lean<Member>()
       .exec();
     if (!result) throw new Errors(HttpCode.NOT_FOUND, Message.NO_DATA_FOUND);
 
@@ -122,6 +153,8 @@ class MemberService {
     try {
       const result = await this.memberModel
         .findOneAndUpdate({ _id: memberId }, input, { new: true })
+        .select("-memberPassword")
+        .lean<Member>()
         .exec();
       if (!result) throw new Errors(HttpCode.NOT_MODIFIED, Message.UPDATE_FAILED);
       return result;
@@ -148,25 +181,29 @@ class MemberService {
       })
       .sort({ rating: -1, memberPoints: -1, createdAt: -1 })
       .limit(4)
+      .lean<Member[]>()
       .exec();
-    if (!result) throw new Errors(HttpCode.NOT_FOUND, Message.NO_DATA_FOUND);
-
     return result;
   }
 
-  public async addUserPoint(member: Member, point: number): Promise<Member> {
+  public async addUserPoint(
+    member: Member,
+    point: number
+  ): Promise<Member | null> {
     const memberId = shapeIntroMongooseObjectId(member._id);
 
     return await this.memberModel
-      .findByIdAndUpdate(
+      .findOneAndUpdate(
         {
           _id: memberId,
-          MemberType: MemberType.USER,
+          memberType: MemberType.USER,
           memberStatus: MemberStatus.ACTIVE,
         },
         { $inc: { memberPoints: point } },
         { new: true }
       )
+      .select("-memberPassword")
+      .lean<Member>()
       .exec();
   }
 
@@ -181,6 +218,8 @@ class MemberService {
         { memberStatus: status },
         { new: true }
       )
+      .select("-memberPassword")
+      .lean<Member>()
       .exec();
     if (!result) throw new Errors(HttpCode.NOT_MODIFIED, Message.UPDATE_FAILED);
     return result;
@@ -223,10 +262,11 @@ class MemberService {
         new: true,
         upsert: true,
         setDefaultsOnInsert: true,
-      });
+      }).exec();
 
-      if (result) result.memberPassword = "";
-      return result as Member;
+      if (!result) throw new Errors(HttpCode.BAD_REQUEST, Message.CREATE_FAILED);
+
+      return this.toMember(result);
     } catch (err) {
       throw new Errors(HttpCode.BAD_REQUEST, Message.CREATE_FAILED);
       /* try{} catch{} qilib,  customized class hosil qilib
@@ -238,6 +278,9 @@ class MemberService {
   public async processLogin(input: LoginInput, requireAdmin = false): Promise<Member> {
     const loginId = input.memberNick || input.memberPhone;
     console.log("processLogin loginId:", loginId, "requireAdmin:", requireAdmin);
+    if (!loginId || !input.memberPassword)
+      throw new Errors(HttpCode.BAD_REQUEST, Message.CREATE_FAILED);
+
     const member = await this.memberModel
       .findOne({
         $or: [
@@ -261,9 +304,8 @@ class MemberService {
     // console.log("matching", isMatch);
     if (!isMatch)
       throw new Errors(HttpCode.UNAUTHORIZED, Message.WRONG_PASSWORD);
-    return await this.memberModel.findById(member._id).exec();
-    // console.log("member:", member);
-    // return member;
+
+    return this.toMember(member);
   }
 
   public async getUsers(): Promise<Member[]> {
@@ -272,22 +314,27 @@ class MemberService {
       .select(
         "memberNick memberPhone memberImage memberType memberStatus memberPoints productsSold productsBought likesCount rating"
       )
+      .lean<Member[]>()
       .exec();
-    if (!result) throw new Errors(HttpCode.NOT_FOUND, Message.NO_DATA_FOUND);
-
     return result;
   }
 
   public async updateChosenUser(input: MemberUpdateInput): Promise<Member> {
-    input._id = shapeIntroMongooseObjectId(input._id);
+    if (!input._id) {
+      throw new Errors(HttpCode.BAD_REQUEST, Message.CREATE_FAILED);
+    }
+
+    const memberId = shapeIntroMongooseObjectId(input._id);
     const result = await this.memberModel
-      .findByIdAndUpdate(
+      .findOneAndUpdate(
         {
-          _id: input._id,
+          _id: memberId,
         }, // filter
         input, // update data
         { new: true }
       ) // updated new data
+      .select("-memberPassword")
+      .lean<Member>()
       .exec();
     if (!result) throw new Errors(HttpCode.NOT_MODIFIED, Message.UPDATE_FAILED);
 

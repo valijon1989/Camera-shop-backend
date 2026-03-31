@@ -1,10 +1,10 @@
-import { ObjectId } from "mongoose";
+import { MongoId } from "./common";
 import { MemberStatus, MemberType } from "../enums/member.enum";
 import { Session } from "express-session";
 import { Request } from "express";
 
 export interface Member {
-  _id: ObjectId;
+  _id: MongoId;
   memberType: MemberType;
   memberStatus: MemberStatus;
   memberNick: string;
@@ -18,7 +18,7 @@ export interface Member {
   likesCount?: number;
   rating?: number;
   memberAddress?: string;
-  memberDesc: string;
+  memberDesc?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -49,7 +49,7 @@ export interface LoginInput {
 }
 
 export interface MemberUpdateInput {
-  _id: ObjectId;
+  _id?: MongoId;
   memberStatus?: MemberStatus;
   memberNick?: string;
   memberPhone?: string;

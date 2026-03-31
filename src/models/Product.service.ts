@@ -8,7 +8,7 @@ import {
 } from "../libs/types/product";
 import ProductModel from "../schema/Product.model";
 import { T } from "../libs/types/common";
-import { ObjectId } from "mongoose";
+import { MongoId } from "../libs/types/common";
 import ViewService from "./View.service";
 import { ViewInput } from "../libs/types/view";
 import { ViewGroup } from "../libs/enums/view.enum";
@@ -26,6 +26,13 @@ class ProductService {
   constructor() {
     this.productModel = ProductModel;
     this.viewService = new ViewService();
+  }
+
+  private toProduct(product: Product): Product {
+    return {
+      ...product,
+      images: this.normalizeImages(product.images),
+    };
   }
 
   private normalizeImages(images?: string[]): string[] {
@@ -131,12 +138,15 @@ class ProductService {
   }
 
   public async getProduct(
-    memberId: ObjectId | null,
+    memberId: MongoId | null,
     id: string
   ): Promise<Product> {
     const productId = shapeIntroMongooseObjectId(id);
 
-    let result = await this.productModel.findOne({ _id: productId }).exec();
+    let result = await this.productModel
+      .findOne({ _id: productId })
+      .lean<Product>()
+      .exec();
     if (!result) throw new Errors(HttpCode.NOT_FOUND, Message.NO_DATA_FOUND);
 
     if (memberId) {
@@ -160,28 +170,26 @@ class ProductService {
             { $inc: { productViews: +1 } },
             { new: true }
           )
+          .lean<Product>()
           .exec();
+        if (!result) {
+          throw new Errors(HttpCode.NOT_MODIFIED, Message.UPDATE_FAILED);
+        }
       }
     }
 
-    const json = result.toJSON ? result.toJSON() : (result as any);
-    json.images = this.normalizeImages(json?.images);
-    return json as Product;
+    return this.toProduct(result);
   }
 
   public async getAllProducts(): Promise<Product[]> {
-    const result = await this.productModel.find().exec();
-    if (!result) throw new Errors(HttpCode.NOT_FOUND, Message.NO_DATA_FOUND);
-    return result.map((doc) => {
-      const json = doc.toJSON ? doc.toJSON() : (doc as any);
-      json.images = this.normalizeImages(json?.images);
-      return json as Product;
-    });
+    const result = await this.productModel.find().lean<Product[]>().exec();
+    return result.map((product) => this.toProduct(product));
   }
 
   public async createNewProduct(input: ProductInput): Promise<Product> {
     try {
-      return await this.productModel.create(input);
+      const result = await this.productModel.create(input);
+      return this.toProduct(result.toObject());
     } catch (err) {
       console.error("Error, model: createNewProduct", err);
       throw new Errors(HttpCode.BAD_REQUEST, Message.CREATE_FAILED);
@@ -193,22 +201,24 @@ class ProductService {
     input: ProductUpdateInput
   ): Promise<Product> {
     //string => object
-    id = shapeIntroMongooseObjectId(id);
+    const productId = shapeIntroMongooseObjectId(id);
     const result = await this.productModel
-      .findOneAndUpdate({ _id: id }, input, { new: true }) // { new: true }-ozgargan qiymatni qaytar
+      .findOneAndUpdate({ _id: productId }, input, { new: true }) // { new: true }-ozgargan qiymatni qaytar
+      .lean<Product>()
       .exec();
     if (!result) throw new Errors(HttpCode.NOT_MODIFIED, Message.UPDATE_FAILED);
 
-    return result;
+    return this.toProduct(result);
   }
 
   public async deleteProduct(id: string): Promise<Product> {
     const objId = shapeIntroMongooseObjectId(id);
     const result = await this.productModel
       .findOneAndDelete({ _id: objId })
+      .lean<Product>()
       .exec();
     if (!result) throw new Errors(HttpCode.NOT_MODIFIED, Message.UPDATE_FAILED);
-    return result;
+    return this.toProduct(result);
   }
 }
 export default ProductService;

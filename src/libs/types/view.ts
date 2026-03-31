@@ -1,17 +1,17 @@
-import { ObjectId } from "mongoose";
 import { ViewGroup } from "../enums/view.enum";
+import { MongoId } from "./common";
 
 export interface View {
-  _id: ObjectId;
+  _id: MongoId;
   viewGroup: ViewGroup;
-  memberId: ObjectId;
-  viewRefId: ObjectId;
+  memberId: MongoId;
+  viewRefId: MongoId;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface ViewInput {
-  memberId: ObjectId;
-  viewRefId: ObjectId;
+  memberId: MongoId;
+  viewRefId: MongoId;
   viewGroup: ViewGroup;
 }

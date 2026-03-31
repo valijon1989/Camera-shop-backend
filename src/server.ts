@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-dotenv.config();
+dotenv.config({
+  path: process.env.NODE_ENV === "production" ? ".env.production" : ".env",
+});
 import bcrypt from "bcryptjs";
 import MemberModel from "./schema/Member.model";
 import { MemberStatus, MemberType } from "./libs/enums/member.enum";

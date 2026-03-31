@@ -1,9 +1,9 @@
-import { ObjectId } from "mongoose";
 import { Member } from "./member";
+import { MongoId } from "./common";
 
 export interface Listing {
-  _id: ObjectId;
-  owner: ObjectId | Member;
+  _id: MongoId;
+  owner: MongoId | Member;
   title: string;
   brand: string;
   model: string;

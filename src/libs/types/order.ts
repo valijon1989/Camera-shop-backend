@@ -1,35 +1,35 @@
-import { ObjectId } from "mongoose";
 import { OrderStatus } from "../enums/order";
 import { Product } from "./product";
+import { MongoId } from "./common";
 
 export interface OrderItem {
-  _id: ObjectId;
+  _id: MongoId;
   itemQuantity: number;
   itemPrice: number;
-  orderId: ObjectId;
-  productId: ObjectId;
+  orderId: MongoId;
+  productId: MongoId;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface Order {
-  _id: ObjectId;
+  _id: MongoId;
   orderTotal: number;
   orderDelivery: number;
   orderStatus: OrderStatus;
-  memberId: ObjectId;
+  memberId: MongoId;
   createdAt: Date;
   updatedAt: Date;
   /** from aggrigation **/
-  orderItem: OrderItem[];
-  prductData: Product[];
+  orderItems?: OrderItem[];
+  productData?: Product[];
 }
 
 export interface OrderItemInput {
   itemQuantity: number;
   itemPrice: number;
-  productId: ObjectId;
-  orderId?: ObjectId;
+  productId: MongoId;
+  orderId?: MongoId;
 }
 
 export interface OrderInquiry {

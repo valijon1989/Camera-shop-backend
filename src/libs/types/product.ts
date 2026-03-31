@@ -1,10 +1,10 @@
-import { ObjectId } from "mongoose";
+import { MongoId } from "./common";
 export interface Product {
-  _id: ObjectId;
+  _id: MongoId;
   cameraModel: string;
   brand: string;
   category?: string;
-  createdBy?: ObjectId;
+  createdBy?: MongoId;
   resolutionMp?: number;
   sensorType?: string;
   mountType?: string;
@@ -48,7 +48,7 @@ export interface ProductInput {
   cameraModel: string;
   brand: string;
   category?: string;
-  createdBy?: ObjectId;
+  createdBy?: MongoId;
   resolutionMp?: number;
   sensorType?: string;
   mountType?: string;
@@ -66,7 +66,7 @@ export interface ProductInput {
 }
 
 export interface ProductUpdateInput {
-  _id: ObjectId;
+  _id: MongoId;
   cameraModel?: string;
   brand?: string;
   category?: string;

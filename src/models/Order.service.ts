@@ -9,9 +9,9 @@ import {
 } from "../libs/types/order";
 import { shapeIntroMongooseObjectId } from "../libs/config";
 import Errors, { HttpCode, Message } from "../libs/Errors";
-import { ObjectId } from "mongoose";
 import MemberService from "./Member.service";
 import { OrderStatus } from "../libs/enums/order";
+import { MongoId } from "../libs/types/common";
 
 class OrderService {
   private readonly orderModel;
@@ -35,17 +35,21 @@ class OrderService {
     const delivery = amount < 100 ? 5 : 0;
 
     try {
-      const newOrder: Order = await this.orderModel.create({
+      const newOrder = await this.orderModel.create({
         orderTotal: amount + delivery,
         orderDelivery: delivery,
         memberId: memberId,
       });
 
-      const orderId = newOrder._id;
+      const createdOrder = newOrder.toObject();
+      const orderId = createdOrder._id;
       console.log("order idsi", orderId);
       await this.recordOrderItem(orderId, input);
 
-      return newOrder;
+      return {
+        ...createdOrder,
+        orderStatus: createdOrder.orderStatus as OrderStatus,
+      };
     } catch (err) {
       console.log("Error, model: createOrder", err);
       throw new Errors(HttpCode.BAD_REQUEST, Message.CREATE_FAILED);
@@ -53,7 +57,7 @@ class OrderService {
   }
 
   private async recordOrderItem(
-    orderId: ObjectId,
+    orderId: MongoId,
     input: OrderItemInput[]
   ): Promise<void> {
     const promisedList = input.map(async (item: OrderItemInput) => {
@@ -112,11 +116,12 @@ class OrderService {
       orderStatus = input.orderStatus;
 
     const result = await this.orderModel
-      .findByIdAndUpdate(
+      .findOneAndUpdate(
         { memberId: memberId, _id: orderId },
         { orderStatus: orderStatus },
         { new: true }
       )
+      .lean<Order>()
       .exec();
 
     if (!result) throw new Errors(HttpCode.NOT_MODIFIED, Message.UPDATE_FAILED);
