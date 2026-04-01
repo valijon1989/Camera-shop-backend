@@ -7,7 +7,7 @@
     "start": "NODE_OPTIONS=--max-http-header-size=65536 ts-node src/server.ts",
     "dev": "NODE_OPTIONS=--max-http-header-size=65536 nodemon --exec ts-node src/server.ts",
     "build": "tsc && node extra.js",
-    "start:prod": "NODE_ENV=production node dist/server.js",
+    "start:prod": "node dist/server.js",
     "start:dev": "NODE_OPTIONS=--max-http-header-size=65536 nodemon --exec ts-node src/server.ts",
     "train": "nodemon --exec ts-node src/train.ts",
     "seed:products": "ts-node src/scripts/seed-products.ts",
