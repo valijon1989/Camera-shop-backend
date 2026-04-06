@@ -54,6 +54,7 @@ const atlasUrl =
   (process.env.MONGO_CAMERA_SHOP_URL as string | undefined) ||
   "mongodb+srv://volfvolf0505:3323626valijon@cluster0.pztgqtr.mongodb.net/camera_shop?retryWrites=true&w=majority";
 const localUrl = "mongodb://127.0.0.1:27017/camera_shop";
+const listenHost = (process.env.HOST as string | undefined) || "0.0.0.0";
 
 async function start() {
   try {
@@ -80,7 +81,7 @@ async function start() {
 
   await ensureDefaultAdmin();
   const PORT = process.env.PORT ?? 9090;
-  server.listen(PORT, function () {
+  server.listen(Number(PORT), listenHost, function () {
     console.info(`The serveris running succesfully on port: ${PORT}`);
     console.info(`Admin project on http://localhost:${PORT}/admin \n`);
   });
