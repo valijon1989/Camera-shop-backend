@@ -24,6 +24,8 @@ const app = express(); //expressni execution natijasida app maqsadli objectni ol
 const defaultPort = process.env.PORT || 9090;
 const defaultOrigins = [
   "http://localhost:3000",
+  "http://localhost:9090",
+  "http://187.77.147.162:9090",
   `http://localhost:${defaultPort}`,
   `http://127.0.0.1:${defaultPort}`,
 ];
