@@ -18,68 +18,87 @@ import { T } from "./libs/types/common";
 import { createSessionStore } from "./libs/session-store";
 
 /* 1- ENTRANCE */
-const app = express(); //expressni execution natijasida app maqsadli objectni olamiz
+const app = express();
 
-// CORS: frontend domen(lar)ini env orqali boshqarish
-const defaultPort = process.env.PORT || 9090;
+// CORS: frontend/admin originlarini env orqali boshqaramiz
+const defaultPort = String(process.env.PORT || 9090);
+const appUrl = (process.env.APP_URL || "").trim().replace(/\/+$/, "");
+
 const defaultOrigins = [
   "http://localhost:3000",
+  "http://localhost:3010",
   "http://localhost:9090",
+  "http://127.0.0.1:3000",
+  "http://127.0.0.1:3010",
+  "http://127.0.0.1:9090",
+  "http://187.77.147.162:3010",
   "http://187.77.147.162:9090",
   `http://localhost:${defaultPort}`,
   `http://127.0.0.1:${defaultPort}`,
-];
-const allowedOrigins = (
-  process.env.ALLOWED_ORIGINS || defaultOrigins.join(",")
-)
-  .split(",")
-  .map((o) => o.trim().replace(/\/+$/, "")) // trailing slashlarni olib tashlaymiz
-  .filter(Boolean);
+  appUrl,
+].filter(Boolean);
+
+const allowedOrigins = Array.from(
+  new Set(
+    (process.env.ALLOWED_ORIGINS
+      ? process.env.ALLOWED_ORIGINS.split(",")
+      : defaultOrigins
+    )
+      .map((o) => String(o).trim().replace(/\/+$/, ""))
+      .filter(Boolean)
+  )
+);
+
+console.log("ALLOWED_ORIGINS:", allowedOrigins);
 
 app.use(
   cors({
     credentials: true,
     origin: (origin, callback) => {
-      if (!origin) return callback(null, true); // curl yoki server-side request
-      const normalizedOrigin = origin.replace(/\/+$/, "");
-      if (allowedOrigins.includes(normalizedOrigin)) return callback(null, true);
+      // curl, server-side request, postman kabi holatlar
+      if (!origin) return callback(null, true);
+
+      const normalizedOrigin = String(origin).trim().replace(/\/+$/, "");
+
+      if (allowedOrigins.includes(normalizedOrigin)) {
+        return callback(null, true);
+      }
+
       return callback(new Error(`CORS bloklandi: ${origin}`));
     },
   })
-); // ixtiyoriy domain ni saytimizga kirishiga ruxsat
+);
 
 app.use(express.static(path.join(__dirname, "public")));
+
 // Uploads xizmatini /uploads va /api/uploads prefikslari uchun ham bir xil ko'rinishda beramiz
 const serveUploads: express.RequestHandler = (req, res, next) => {
   const uploadsRoot = path.join(process.cwd(), "uploads");
 
-  // Frontend ba'zan "uploads/uploads/..." shaklida takroriy prefiks yuboradi,
-  // shu sababli pathni tozalab yuboramiz.
   const normalizedPath = req.path.replace(/^\/+/g, "").replace(/^uploads[\\/]/, "");
   const filePath = path.join(uploadsRoot, normalizedPath);
 
   if (fs.existsSync(filePath)) return res.sendFile(filePath);
 
-  // Fallback: agar fayl ishlayotgan mashinaning "Desktop/mac/camera" papkasida bo'lsa ham ko'rsatsin
   const externalMediaRoot = path.join(process.env.HOME || "", "Desktop", "mac", "camera");
   const externalPath = path.join(externalMediaRoot, normalizedPath.replace(/^uploads[\\/]/, ""));
   if (fs.existsSync(externalPath)) return res.sendFile(externalPath);
 
   const fallback = path.join(uploadsRoot, "placeholder-product.jpg");
   if (fs.existsSync(fallback)) return res.sendFile(fallback);
+
   return next();
 };
 
 app.use("/uploads", serveUploads);
 app.use("/api/uploads", serveUploads);
-// Allow larger payloads (e.g. profile images/base64 from frontend) without 413/PayloadTooLarge
-const bodyLimit = process.env.BODY_LIMIT || "50mb";
-app.use(express.urlencoded({ extended: true, limit: bodyLimit })); //=> support Traditional API/form post
-app.use(express.json({ limit: bodyLimit })); //support Rest API/ json farmatdagi data oldi berdisi
-app.use(cookieParser()); //TOKEN
-app.use(morgan(MORGAN_FORMAT)); //Logging jarayonini tashkil qib beradi,
 
-// Disable caching for API responses to avoid stale 304s in the frontend
+const bodyLimit = process.env.BODY_LIMIT || "50mb";
+app.use(express.urlencoded({ extended: true, limit: bodyLimit }));
+app.use(express.json({ limit: bodyLimit }));
+app.use(cookieParser());
+app.use(morgan(MORGAN_FORMAT));
+
 app.use((req, res, next) => {
   if (req.path.startsWith("/api")) {
     res.set("Cache-Control", "no-store");
@@ -95,26 +114,22 @@ const sessionMongoUri =
 
 app.use(
   session({
-    //session bu core functon/ session bosh boladi
     secret: String(process.env.SESSION_SECRET),
     cookie: {
       maxAge: 1000 * 60 * 60 * 6,
     },
-    // Mongo store tayyor bo'lsa unga o'tadi, aks holda memory fallback bilan davom etadi
     store: createSessionStore(sessionMongoUri),
     resave: false,
     saveUninitialized: false,
   })
 );
-//session boyiydi/ req.session+member (qaytganda)
 
 app.use(function (req, res, next) {
   const sessionInstance = req.session as T;
-  res.locals.member = sessionInstance.member; //res.locals. = browser variable
+  res.locals.member = sessionInstance.member;
   next();
 });
 
-// Simple diagnostics endpoint
 app.get("/test-backend", (_req, res) => {
   res.json({ status: "backend-ok", port: process.env.PORT || 3003 });
 });
@@ -125,15 +140,15 @@ app.set("view engine", "ejs");
 
 /* 4-ROUTERS */
 app.use("/admin", routerAdmin);
-app.use("/api", router); // SPA/REST with /api prefix for frontend clients
-app.use("/api", apiRouter); // lightweight auth/products/users API endpoints
+app.use("/api", router);
+app.use("/api", apiRouter);
 app.use("/api/help", helpRoutes);
-// Simple root handler so redirects to "/" don't return 404
+
 app.get("/", (_req: express.Request, res: express.Response) => {
   res.send("Camera Shop backend is running");
 });
-app.use("/", router); // REST API / SPA
 
+app.use("/", router);
 
 const server = http.createServer(app);
 
@@ -157,21 +172,4 @@ io.on("connection", (socket) => {
 });
 
 export { app, server };
-export default server; // module.exports = app.js;
-
-/*Burak backend ni ikki hil maqsadda ishlatamiz:
-1. app.use("/", router); => Burak SPA: ni userlar uchun xizmat qiladigan
- REACT loyihamiz uchun REST API sifatida ishlatamiz
-res.json => REST API
-REST API => boshqa toollar orqali amalga oshadi
-
-2. app.use("/admin", routerAdmin); => 
-Traditional API BSSR da quramiz, BUrak adminka qilamniz 
-res.send/ res.end / ... Traditional API
-TRaditional API => HTML ni backendda qurilganda shu API dan foydalaniladi, 
-va Form va Post orqali HTML orqali amalga oshadi
-
-
-BSSR => Traditioanl API & REST API
-SPA => REST API
-*/
+export default server;
