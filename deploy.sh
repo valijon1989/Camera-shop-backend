@@ -4,23 +4,36 @@ set -euo pipefail
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$PROJECT_DIR"
 
+# Load environment variables from .env
+if [ -f .env ]; then
+  set -a
+  . ./.env
+  set +a
+fi
+
 # PRODUCTION
 git reset --hard
 git checkout master
 git pull origin master
 
-npm i
+npm install
 rm -rf dist
 npm run build
+
 if pm2 describe CAMERA_UZ >/dev/null 2>&1; then
   pm2 restart CAMERA_UZ --update-env
 else
-  pm2 start process.config.js --env production
+  pm2 start dist/server.js --name CAMERA_UZ
 fi
+
+pm2 save
 
 # DEVELOPMENT
 # git reset --hard
 # git checkout develop
 # git pull origin develop
-# npm i
-# pm2 start "npm run start:dev" --name=CAMERA_UZ
+# npm install
+# set -a
+# . ./.env
+# set +a
+# pm2 start "npm run start:dev" --name CAMERA_UZ_DEV
