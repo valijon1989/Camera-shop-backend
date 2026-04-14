@@ -6,7 +6,7 @@
   "scripts": {
     "start": "NODE_OPTIONS=--max-http-header-size=65536 ts-node src/server.ts",
     "dev": "NODE_OPTIONS=--max-http-header-size=65536 nodemon --exec ts-node src/server.ts",
-    "build": "tsc && node extra.js",
+    "build": "rm -rf dist && tsc && node extra.js",
     "start:prod": "node dist/server.js",
     "start:dev": "NODE_OPTIONS=--max-http-header-size=65536 nodemon --exec ts-node src/server.ts",
     "train": "nodemon --exec ts-node src/train.ts",

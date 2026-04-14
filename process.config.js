@@ -1,7 +1,7 @@
 module.exports = {
   apps : [{
     name   : "CAMERA_UZ",
-    cwd: "./",
+    cwd: __dirname,
     script : "./dist/server.js",
     watch: false,
     env_production: {
