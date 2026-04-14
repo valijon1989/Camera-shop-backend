@@ -20,21 +20,29 @@ import { createSessionStore } from "./libs/session-store";
 /* 1- ENTRANCE */
 const app = express();
 
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",")
-  : [];
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || "")
+  .split(",")
+  .map((item) => item.trim())
+  .filter((item) => item.length > 0);
+
+console.log("ALLOWED_ORIGINS:", allowedOrigins);
+
+const corsOrigin = function (
+  origin: string | undefined,
+  callback: (err: Error | null, allow?: boolean) => void
+) {
+  if (!origin) return callback(null, true);
+
+  if (allowedOrigins.includes(origin)) {
+    return callback(null, true);
+  }
+
+  return callback(new Error("CORS bloklandi: " + origin));
+};
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin) return callback(null, true);
-
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-
-      return callback(new Error("CORS bloklandi: " + origin));
-    },
+    origin: corsOrigin,
     credentials: true,
   })
 );
@@ -124,7 +132,7 @@ const server = http.createServer(app);
 
 const io = new SocketIOServer(server, {
   cors: {
-    origin: true,
+    origin: corsOrigin,
     credentials: true,
   },
 });

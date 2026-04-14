@@ -81,9 +81,11 @@ async function start() {
 
   await ensureDefaultAdmin();
   const PORT = process.env.PORT ?? 9090;
+  const appUrl = ((process.env.APP_URL as string | undefined) || "").trim().replace(/\/+$/, "");
+  const adminUrl = appUrl ? `${appUrl}/admin` : `http://${listenHost}:${PORT}/admin`;
   server.listen(Number(PORT), listenHost, function () {
     console.info(`The serveris running succesfully on port: ${PORT}`);
-    console.info(`Admin project on http://localhost:${PORT}/admin \n`);
+    console.info(`Admin project on ${adminUrl} \n`);
   });
 }
 
