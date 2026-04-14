@@ -20,52 +20,22 @@ import { createSessionStore } from "./libs/session-store";
 /* 1- ENTRANCE */
 const app = express();
 
-// CORS: frontend/admin originlarini env orqali boshqaramiz
-const defaultPort = String(process.env.PORT || 9090);
-const appUrl = (process.env.APP_URL || "").trim().replace(/\/+$/, "");
-
-const defaultOrigins = [
-  "http://localhost:3000",
-  "http://localhost:3010",
-  "http://localhost:9090",
-  "http://127.0.0.1:3000",
-  "http://127.0.0.1:3010",
-  "http://127.0.0.1:9090",
-  "http://187.77.147.162:3010",
-  "http://187.77.147.162:9090",
-  `http://localhost:${defaultPort}`,
-  `http://127.0.0.1:${defaultPort}`,
-  appUrl,
-].filter(Boolean);
-
-const allowedOrigins = Array.from(
-  new Set(
-    (process.env.ALLOWED_ORIGINS
-      ? process.env.ALLOWED_ORIGINS.split(",")
-      : defaultOrigins
-    )
-      .map((o) => String(o).trim().replace(/\/+$/, ""))
-      .filter(Boolean)
-  )
-);
-
-console.log("ALLOWED_ORIGINS:", allowedOrigins);
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(",")
+  : [];
 
 app.use(
   cors({
-    credentials: true,
-    origin: (origin, callback) => {
-      // curl, server-side request, postman kabi holatlar
+    origin: function (origin, callback) {
       if (!origin) return callback(null, true);
 
-      const normalizedOrigin = String(origin).trim().replace(/\/+$/, "");
-
-      if (allowedOrigins.includes(normalizedOrigin)) {
+      if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
 
-      return callback(new Error(`CORS bloklandi: ${origin}`));
+      return callback(new Error("CORS bloklandi: " + origin));
     },
+    credentials: true,
   })
 );
 
